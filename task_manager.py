@@ -20,7 +20,7 @@ class Task:
             "title": self.title,
             "priority": self.priority,
             "complated": self.complated,
-            "created_date": self.created_date.isoformat() # Konverterer datetime-objektet til en streng
+            "created_date": self.created_date.isoformat() # Konverterer datetime-objektet til en  streng
         }
         
 class TaskManager:
