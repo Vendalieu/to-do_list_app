@@ -52,7 +52,7 @@ class TaskManager:
     def toggle_completion(self, task_id):
         '''Bytter fullføringsstatusen til en oppgave basert på dens ID'''
         for task in self.tasks:
-            if task.id == task_id:
+            if task.id == task_id: # Sjekker om oppgaven med den gitte IDen finnes
                 task.toggle_completion()
                 status = "fullført" if task.complated else "ikke fullført"
                 return True, f"Oppgave med ID {task_id} er nå {status}."
@@ -65,6 +65,6 @@ class TaskManager:
     def get_task_by_id(self, task_id):
         '''Henter en oppgave basert på dens ID'''
         for task in self.tasks:
-            if task.id == task_id:
+            if task.id == task_id: # Sjekker om oppgaven med den gitte IDen finnes
                 return task
         return None
