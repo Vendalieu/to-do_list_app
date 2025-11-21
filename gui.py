@@ -4,6 +4,7 @@ from task_manager import TaskManager
 
 class TodoApp:
     '''Hovedklassen for To-Do List applikasjonen'''
+    
     def __init__(self, root):
         self.root = root # Referanse til hovedvinduet
         self.root.title("To-Do List App") # Setter tittelen på vinduet
@@ -15,6 +16,7 @@ class TodoApp:
         
     def create_widgets(self):
         '''Oppretter GUI-komponentene'''
+        
         input_frame = tkinter.Frame(self.root) # Lager en ramme for inndatafelt og knapp
         input_frame.pack(pady=10)
         
@@ -63,6 +65,7 @@ class TodoApp:
         
     def add_sample_tasks(self):
         '''Legger til noen eksempeloppgaver ved oppstart'''
+        
         sample_tasks = [
             ("Buy groceries", "High"),
             ("Walk the dog", "Medium"),
@@ -76,6 +79,7 @@ class TodoApp:
         
     def add_task(self):
         '''Legger til en ny oppgave basert på brukerens inndata'''
+        
         title = self.task_entry.get().strip() # Henter og renser oppgavetittelen fra inndatafeltet
         
         if not title:
@@ -89,3 +93,51 @@ class TodoApp:
             self.update_task_list() # Oppdaterer oppgavelisten i GUI
         else:
             messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
+            
+    def get_selected_task(self):
+        '''Henter den valgte oppgaven fra trevisningen'''
+            
+        selection = self.tree.selection() # Henter det valgte elementet i trevis
+        if not selection:
+            messagebox.showwarning("Selection Error", "Ingen oppgave valgt.") # Viser advarsel hvis ingen oppgave er valgt
+            return None
+            
+        item = selection[0]
+        task_id = self.tree.item(item)["values"][0] # Henter oppgave-ID fra det valgte elementet
+        return self.task_manager.get_task_by_id(task_id) # Returnerer oppgaveobjektet basert på ID
+        
+    def toggle_task(self):
+        '''Bytter fullføringsstatusen til den valgte oppgaven'''
+        
+        task = self.get_selected_task() # Henter den valgte oppgaven
+        if task:
+            if messagebox.askyesno("Confirm", f"Bytt status for oppgaven '{task.title}'?"): # Bekreftelse fra bruker
+                success, msg = self.task_manager.toggle_completion(task.id) # Bytter fullføringsstatus via TaskManager
+                if success:
+                    self.update_task_list() # Oppdaterer oppgavelisten i GUI
+                    messagebox.showinfo("Success", msg) # Viser suksessmelding
+                else:
+                    messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
+                    
+    def delete_task(self):
+        '''Sletter den valgte oppgaven'''
+        
+        task = self.get_selected_task() # Henter den valgte oppgaven
+        if task:
+            if messagebox.askyesno("Confirm", f"Slett oppgaven '{task.title}'?"): # Bekreftelse fra bruker
+                success, msg = self.task_manager.delete_task(task.id) # Sletter oppgaven via TaskManager
+                if success:
+                    self.update_task_list() # Oppdaterer oppgavelisten i GUI
+                    messagebox.showinfo("Success", msg) # Viser suksessmelding
+                else:
+                    messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
+                    
+    def update_task_list(self):
+        '''Oppdaterer oppgavelisten i trevisningen'''
+        
+        for item in self.tree.get_children():
+            self.tree.delete(item) # Tømmer eksisterende elementer i trevisningen
+            
+        for task in self.task_manager.get_all_tasks():
+            status = "Completed" if task.complated else "Pending" # Bestemmer status basert på fullføringsstatus
+            self.tree.insert("", tkinter.END, values=(task.id, status, task.priority, task.title)) # Legger til oppgaven i trevisningen
