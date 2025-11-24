@@ -1,4 +1,5 @@
 from datetime import datetime # Programmet må vite dagens dato for å vite når oppgaven ble opprettet, når den ble fullført, fristen osv.
+from file_handler import save_tasks_to_file, load_tasks_from_file # Importerer funksjoner for å lagre og laste oppgaver fra fil
 
 class Task:
     '''Mal for oppretting av oppgaver'''
@@ -25,8 +26,12 @@ class Task:
         
 class TaskManager:
     '''klasse for å administrere oppgaver'''
-    def __init__(self):
-        self.tasks = []  # Liste for å lagre oppgaveobjekter
+    def __init__(self, initial_tasks=None):
+        self.tasks = initial_tasks if initial_tasks is not None else []  # Liste for å lagre oppgaveobjekter
+        
+    def save_tasks(self, filename="tasks.json"):
+        '''Lagrer oppgavelisten til en fil'''
+        return save_tasks_to_file(self.tasks, filename)
     
     def add_task(self, title, priority="Medium"):
         '''Legger til en ny oppgave i oppgavelisten'''
