@@ -15,6 +15,7 @@ class TodoApp:
         
         self.task_manager = TaskManager(loaded_tasks_data) # Oppretter en TaskManager med de lastede oppgavene
         self.create_widgets() # Kaller metoden for å lage GUI-komponenter
+        self.update_task_list() # Oppdaterer oppgavelisten i GUI
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing) # Håndterer vindu-lukk hendelsen
         
     def create_widgets(self):
