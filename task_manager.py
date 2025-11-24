@@ -29,7 +29,7 @@ class Task:
         task = cls(task_dict["title"], task_dict.get("priority", "Medium"))  # Standard til Medium hvis ikke spesifisert
         task.id = task_dict["id"]
         task.complated = task_dict["complated"]
-        task.created_date = datetime.fromisoformat(task_dict["created_date"]) # Konverterer strengen tilbake til et datetime-objekt
+        task.created_date = datetime.fromisoformat(str(task_dict["created_date"])) # Konverterer strengen tilbake til et datetime-objekt
         return task
         
 class TaskManager:
