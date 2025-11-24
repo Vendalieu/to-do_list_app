@@ -1,6 +1,7 @@
 import tkinter
 from tkinter import messagebox, ttk # Importerer alle nødvendige biblioteker
 from task_manager import TaskManager
+from file_handler import load_tasks_from_file
 
 class TodoApp:
     '''Hovedklassen for To-Do List applikasjonen'''
@@ -10,9 +11,11 @@ class TodoApp:
         self.root.title("To-Do List App") # Setter tittelen på vinduet
         self.root.geometry("700x500") # Setter opp størelsen på vinduet
         
-        self.task_manager = TaskManager() # Oppretter en instans av TaskManager for å håndtere oppgaver
+        loaded_tasks = load_tasks_from_file() # Laster oppgaver fra fil ved oppstart
+        
+        self.task_manager = TaskManager(loaded_tasks) # Oppretter en TaskManager med de lastede oppgavene
         self.create_widgets() # Kaller metoden for å lage GUI-komponenter
-        self.add_sample_tasks() # Legger til noen eksempeloppgaver ved oppstart
+        self.root.protocol("WM_DELETE_WINDOW", self.on_closing) # Håndterer vindu-lukk hendelsen
         
     def create_widgets(self):
         '''Oppretter GUI-komponentene'''
@@ -37,9 +40,6 @@ class TodoApp:
         priority_combo = ttk.Combobox(control_frame, textvariable=self.priority_var, values=["High", "Medium", "Low"], width=10, state="readonly") # Lager en nedtrekksmeny for prioritet
         priority_combo.pack(side=tkinter.LEFT, padx=(5, 20))
         
-        add_button = tkinter.Button(control_frame, text="Add Task", command=self.add_task) # Lager en knapp for å legge til oppgave
-        add_button.pack(side=tkinter.LEFT, padx=5)
-        
         self.tree = ttk.Treeview(list_frame, columns=("Title", "Priority", "Status"), show="headings", height=15) # Lager en trevisning for å vise oppgavelisten
         
         self.tree.heading("Title", text="Title")
@@ -60,25 +60,17 @@ class TodoApp:
         self.tree.configure(yscrollcommand=scrollbar.set) # Koble rullefeltet til trevisningen
         
         '''Buttons'''
+        add_button = tkinter.Button(control_frame, text="Add Task", command=self.add_task) # Lager en knapp for å legge til oppgave
+        add_button.pack(side=tkinter.LEFT, padx=5)
+        
         complete_button = tkinter.Button(control_frame, text="Toggle Complete", command=self.toggle_task) # Lager en knapp for å bytte fullføringsstatus
         complete_button.pack(side=tkinter.LEFT, padx=10)
         
         delete_button = tkinter.Button(control_frame, text="Delete Task", command=self.delete_task) # Lager en knapp for å slette oppgave
         delete_button.pack(side=tkinter.LEFT, padx=10)
         
-    def add_sample_tasks(self):
-        '''Legger til noen eksempeloppgaver ved oppstart'''
-        
-        sample_tasks = [
-            ("Buy groceries", "High"),
-            ("Walk the dog", "Medium"),
-            ("Read a book", "Low")
-        ]
-        
-        for title, priority in sample_tasks:
-            self.task_manager.add_task(title, priority)
-            
-        self.update_task_list() # Oppdaterer oppgavelisten i GUI
+        save_button = tkinter.Button(control_frame, text="Save Tasks", command=self.save_tasks) # Lager en knapp for å lagre oppgaver
+        save_button.pack(side=tkinter.LEFT, padx=10)
         
     def add_task(self):
         '''Legger til en ny oppgave basert på brukerens inndata'''
@@ -96,6 +88,7 @@ class TodoApp:
         if success:
             self.task_entry.delete(0, tkinter.END) # Tømmer inndatafeltet ved suksess
             self.update_task_list() # Oppdaterer oppgavelisten i GUI
+            self.save_tasks(silent=True) # Automatisk lagring etter å ha lagt til en oppgave
             messagebox.showinfo("Success", msg) # Viser suksessmelding
         else:
             messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
@@ -135,6 +128,7 @@ class TodoApp:
             success, msg = self.task_manager.toggle_completion(task.id) # Bytter status via TaskManager
             if success:
                 self.update_task_list() # Oppdaterer oppgavelisten i GUI
+                self.save_tasks(silent=True) # Automatisk lagring etter endring
                 messagebox.showinfo("Success", msg) # Viser suksessmelding
             else:
                 messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
@@ -148,10 +142,22 @@ class TodoApp:
                 success, msg = self.task_manager.delete_task(task.id) # Sletter oppgaven via TaskManager
                 if success:
                     self.update_task_list() # Oppdaterer oppgavelisten i GUI
+                    self.save_tasks(silent=True) # Automatisk lagring etter sletting
                     messagebox.showinfo("Success", msg) # Viser suksessmelding
                 else:
                     messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
-            
+    
+    def save_tasks(self, silent=False):
+        '''Lagrer oppgavelisten til fil'''
+        success, msg = self.task_manager.save_tasks() # Kaller lagringsmetoden i TaskManager
+        if not silent:
+            if success:
+                messagebox.showinfo("Success", msg) # Viser suksessmelding
+            else:
+                messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
+        else:
+            print(msg) # For stille lagring, bare skriv ut meldingen i konsollen
+    
     def update_task_list(self):
         """Updates the task list displayed in the treeview"""
         # clears the existing items in the treeview
@@ -173,3 +179,8 @@ class TodoApp:
                 priority_display,
                 status
             )) # Inserts each task into the treeview with its details
+            
+    def on_closing(self):
+        '''Håndterer vindu-lukk hendelsen'''
+        self.save_tasks(silent=True) # Automatisk lagring ved lukking
+        self.root.destroy() # Lukker vinduet
