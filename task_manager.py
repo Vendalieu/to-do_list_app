@@ -1,5 +1,4 @@
 from datetime import datetime # Programmet må vite dagens dato for å vite når oppgaven ble opprettet, når den ble fullført, fristen osv.
-from file_handler import save_tasks_to_file, load_tasks_from_file # Importerer funksjoner for å lagre og laste oppgaver fra fil
 
 class Task:
     '''Mal for oppretting av oppgaver'''
@@ -24,14 +23,23 @@ class Task:
             "created_date": self.created_date.isoformat() # Konverterer datetime-objektet til en  streng
         }
         
+    @classmethod
+    def from_dict(cls, task_dict):
+        '''Oppretter et oppgaveobjekt fra en ordbok'''
+        task = cls(task_dict["title"], task_dict.get("priority", "Medium"))  # Standard til Medium hvis ikke spesifisert
+        task.id = task_dict["id"]
+        task.complated = task_dict["complated"]
+        task.created_date = datetime.fromisoformat(task_dict["created_date"]) # Konverterer strengen tilbake til et datetime-objekt
+        return task
+        
 class TaskManager:
     '''klasse for å administrere oppgaver'''
     def __init__(self, initial_tasks=None):
-        self.tasks = initial_tasks if initial_tasks is not None else []  # Liste for å lagre oppgaveobjekter
-        
-    def save_tasks(self, filename="tasks.json"):
-        '''Lagrer oppgavelisten til en fil'''
-        return save_tasks_to_file(self.tasks, filename)
+        if initial_tasks and isinstance(initial_tasks[0], dict):
+            self.tasks = [Task.from_dict(task_dict) for task_dict in initial_tasks]
+            
+        else:
+            self.tasks = initial_tasks if initial_tasks is not None else []
     
     def add_task(self, title, priority="Medium"):
         '''Legger til en ny oppgave i oppgavelisten'''

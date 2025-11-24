@@ -1,7 +1,7 @@
 import tkinter
 from tkinter import messagebox, ttk # Importerer alle nødvendige biblioteker
 from task_manager import TaskManager
-from file_handler import load_tasks_from_file
+from file_handler import load_tasks_from_file, save_tasks_to_file
 
 class TodoApp:
     '''Hovedklassen for To-Do List applikasjonen'''
@@ -11,9 +11,9 @@ class TodoApp:
         self.root.title("To-Do List App") # Setter tittelen på vinduet
         self.root.geometry("700x500") # Setter opp størelsen på vinduet
         
-        loaded_tasks = load_tasks_from_file() # Laster oppgaver fra fil ved oppstart
+        loaded_tasks_data = load_tasks_from_file() # Laster oppgaver fra fil ved oppstart
         
-        self.task_manager = TaskManager(loaded_tasks) # Oppretter en TaskManager med de lastede oppgavene
+        self.task_manager = TaskManager(loaded_tasks_data) # Oppretter en TaskManager med de lastede oppgavene
         self.create_widgets() # Kaller metoden for å lage GUI-komponenter
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing) # Håndterer vindu-lukk hendelsen
         
@@ -149,7 +149,7 @@ class TodoApp:
     
     def save_tasks(self, silent=False):
         '''Lagrer oppgavelisten til fil'''
-        success, msg = self.task_manager.save_tasks() # Kaller lagringsmetoden i TaskManager
+        success, msg = save_tasks_to_file(self.task_manager.tasks) # Lagrer oppgaver via file_handler
         if not silent:
             if success:
                 messagebox.showinfo("Success", msg) # Viser suksessmelding

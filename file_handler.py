@@ -1,6 +1,5 @@
 import json
 from datetime import datetime           # Importerer alle nødvendige biblioteker
-from task_manager import Task
 
 def save_tasks_to_file(tasks, filename="tasks.json"):
     '''Lagrer oppgavelisten til en JSON-fil'''
@@ -10,14 +9,8 @@ def save_tasks_to_file(tasks, filename="tasks.json"):
         
         tasks_data = []  # Konverterer hver oppgave til en 
         for task in tasks:
-            task_dict = {
-                "id": task.id,
-                "title": task.title,
-                "priority": task.priority,
-                "complated": task.complated,
-                "created_date": task.created_date.isoformat()
-            }
-            tasks_data.append(task_dict)
+
+            tasks_data.append(task.to_dict())  # Bruker to_dict-metoden for å konvertere oppgaven til en ordbok
         
         with open(filename, 'w', encoding='utf-8') as file:
             json.dump(tasks_data, file, ensure_ascii=False, indent=2)  # Skriver ordbøkene til en JSON-fil
@@ -35,14 +28,16 @@ def load_tasks_from_file(filename="tasks.json"):
         tasks = []
         for tasks_data in tasks_data:
             try:
-                task=Task(title=tasks_data["title"], priority=tasks_data.get("priority", "Medium"))
-
-                task.id = tasks_data["id"]
-                task.complated = tasks_data["complated"]
-                task.created_date = datetime.fromisoformat(tasks_data["created_date"])
-
-                tasks.append(task)
-            
+                task_dict = {
+                    "id": tasks_data["id"],
+                    "title": tasks_data["title"],
+                    "priority": tasks_data.get("priority", "Medium"),  # Standard til Medium hvis ikke spesifisert
+                    "complated": tasks_data["complated"],
+                    "created_date": datetime.fromisoformat(tasks_data["created_date"])
+                }
+                
+                tasks.append(task_dict) # Legger til den lastede oppgaven i listen
+                            
             except Exception as e:
                 print(f"Feil ved lasting av en oppgave: {str(e)}")
                 continue
