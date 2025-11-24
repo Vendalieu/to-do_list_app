@@ -53,7 +53,7 @@ def load_tasks_from_file(filename="tasks.json"):
     except FileNotFoundError:
         print(f"Filen {filename} ble ikke funnet. Starter med en tom oppgaveliste.")
         return []
-    except json.JSONDecodeError
+    except json.JSONDecodeError:
         print(f"Feil ved lesing av {filename}. Filen kan være korrupt.")
         return []
     except Exception as e:
