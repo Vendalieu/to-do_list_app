@@ -9,7 +9,7 @@ class TodoApp:
     def __init__(self, root):
         self.root = root # Referanse til hovedvinduet
         self.root.title("To-Do List App") # Setter tittelen på vinduet
-        self.root.geometry("700x500") # Setter opp størelsen på vinduet
+        self.root.geometry("550x500") # Setter opp størelsen på vinduet
         
         loaded_tasks_data = load_tasks_from_file() # Laster oppgaver fra fil ved oppstart
         
@@ -67,10 +67,13 @@ class TodoApp:
         complete_button = tkinter.Button(control_frame, text="Toggle Complete", command=self.toggle_task) # Lager en knapp for å bytte fullføringsstatus
         complete_button.pack(side=tkinter.LEFT, padx=10)
         
-        delete_button = tkinter.Button(control_frame, text="Delete Task", command=self.delete_task) # Lager en knapp for å slette oppgave
+        edit_button = tkinter.Button(control_frame, text="Edit", command=self.edit_task) # Lager en knapp for å redigere oppgave
+        edit_button.pack(side=tkinter.LEFT, padx=10)
+        
+        delete_button = tkinter.Button(control_frame, text="Delete", command=self.delete_task) # Lager en knapp for å slette oppgave
         delete_button.pack(side=tkinter.LEFT, padx=10)
         
-        save_button = tkinter.Button(control_frame, text="Save Tasks", command=self.save_tasks) # Lager en knapp for å lagre oppgaver
+        save_button = tkinter.Button(control_frame, text="Save", command=self.save_tasks) # Lager en knapp for å lagre oppgaver
         save_button.pack(side=tkinter.LEFT, padx=10)
         
     def add_task(self):
@@ -96,6 +99,7 @@ class TodoApp:
             
     def get_selected_task(self):
         """Det er en hjelpefunksjon for å hente den valgte oppgaven fra trevisningen"""
+        
         selection = self.tree.selection()
         if not selection:
             messagebox.showwarning("Error", "Please select a task from the list first!")
@@ -120,6 +124,50 @@ class TodoApp:
         except Exception as e:
             messagebox.showerror("Error", f"Task selection error: {str(e)}")
             return None
+        
+    def edit_task(self):
+        '''Redigerer den valgte oppgaven'''
+        
+        task = self.get_selected_task() # Henter den valgte oppgaven
+        if task:
+            edit_window = tkinter.Toplevel(self.root) # Lager et nytt vindu for redigering
+            edit_window.title("Edit Task")
+            edit_window.geometry("300x225")
+            edit_window.transient(self.root) # Gjør det til et modalt vindu
+            edit_window.grab_set() # Fokuserer på det nye vinduet
+            
+            ttk.Label(edit_window, text="Title:", font=("Arial", 11)).pack(pady=(20, 5))
+            
+            title_var = tkinter.StringVar(value=task.title)
+            title_entry = ttk.Entry(edit_window, textvariable=title_var, font=("Arial", 12), width=40)
+            title_entry.pack(pady=5)
+            title_entry.select_range(0, tkinter.END)
+            title_entry.focus()
+            
+            ttk.Label(edit_window, text="Priority:", font=("Arial", 11)).pack(pady=(15, 5))
+            
+            priority_var = tkinter.StringVar(value=task.priority)
+            priority_combo = ttk.Combobox(edit_window, textvariable=priority_var, values=["High", "Medium", "Low"], state="readonly", width=15)
+            priority_combo.pack(pady=5)
+            
+            def save_edits():
+                new_title = title_var.get().strip()
+                if not new_title:
+                    messagebox.showwarning("Input Error", "Oppgavetittelen kan ikke være tom.")
+                    return
+                
+                task.title = new_title
+                task.priority = priority_var.get()
+                self.update_task_list()
+                self.save_tasks(silent=True)
+                edit_window.destroy()
+                messagebox.showinfo("Success", "Oppgaven er oppdatert.")
+            
+            edit_button_frame = ttk.Frame(edit_window)
+            edit_button_frame.pack(pady=20)
+                
+            save_edit_button = ttk.Button(edit_button_frame, text="Save Changes", command=save_edits)
+            save_edit_button.pack()
         
     def toggle_task(self):
         '''Bytter fullføringsstatusen til den valgte oppgaven'''
@@ -150,6 +198,7 @@ class TodoApp:
     
     def save_tasks(self, silent=False):
         '''Lagrer oppgavelisten til fil'''
+        
         success, msg = save_tasks_to_file(self.task_manager.tasks) # Lagrer oppgaver via file_handler
         if not silent:
             if success:
@@ -161,9 +210,15 @@ class TodoApp:
     
     def update_task_list(self):
         """Updates the task list displayed in the treeview"""
+        
         # clears the existing items in the treeview
         for item in self.tree.get_children():
             self.tree.delete(item)
+            
+        self.tree.tag_configure('completed', background='#d3d3d3') # Setter bakgrunnsfarge for fullførte oppgaver
+        self.tree.tag_configure('low_priority', background='#d0f0c0') # Lys grønn for lav prioritet
+        self.tree.tag_configure('medium_priority', background='#fef3bd') # Lys gul for medium prioritet
+        self.tree.tag_configure('high_priority', background='#f4c2c2') # Lys rød for høy prioritet
     
         # adds tasks in order
         for i, task in enumerate(self.task_manager.get_all_tasks()):
@@ -175,13 +230,35 @@ class TodoApp:
                 "Low": "Low"
             }.get(task.priority, task.priority) 
         
-            self.tree.insert("", tkinter.END, values=(
-                task.title,
-                priority_display,
-                status
-            )) # Inserts each task into the treeview with its details
+            item_values = (
+            task.title,
+            priority_display,
+            status,
+            task.created_date
+            ) # Setter verdier for hver kolonne
+            
+            tags = []
+            if task.complated:
+                tags.append('completed') # Add completed tag
+        
+            # Add priority tag
+            if task.priority == "Low":
+                tags.append('low_priority')
+            elif task.priority == "Medium":
+                tags.append('medium_priority')
+            elif task.priority == "High":
+                tags.append('high_priority')
+        
+            # Insert task with all applicable tags
+            if tags:
+                self.tree.insert("", tkinter.END, values=item_values, tags=tuple(tags))
+            else:
+                self.tree.insert("", tkinter.END, values=item_values)
+                
+        
             
     def on_closing(self):
         '''Håndterer vindu-lukk hendelsen'''
+        
         self.save_tasks(silent=True) # Automatisk lagring ved lukking
         self.root.destroy() # Lukker vinduet
