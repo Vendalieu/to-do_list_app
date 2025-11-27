@@ -54,3 +54,49 @@ def load_tasks_from_file(filename="tasks.json"):
     except Exception as e:
         print(f"Uventet feil ved lasting av oppgaver: {str(e)}")
         return []
+
+def export_to_txt(tasks, filename="tasks_export.txt"):
+    '''Eksporterer oppgavelisten til en tekstfil'''
+    
+    try:
+        if not tasks:
+            return True, "Ingen oppgaver å eksportere."
+        
+        with open(filename, 'w', encoding='utf-8') as file:
+            
+            # Headliner for the text file
+            file.write("=== TASK LIST EXPORT ===\n")
+            file.write(f"Export date: {datetime.now().strftime('%d-%m-%Y %H:%M:%S')}\n")
+            file.write("=" * 20 + "\n")
+            file.write("\n")
+            
+            #Gruppere oppgaver
+            active_tasks = [task for task in tasks if not task.complated]
+            completed_tasks = [task for task in tasks if task.complated]
+            
+            #Skrive aktive oppgaver
+            file.write("ACTIVE TASKS:\n")
+            file.write("-" * 20 + "\n")
+            for i, task in enumerate(active_tasks, 1):
+                priority_symbol = {"Low": "🟢", "Medium": "🟡", "High": "🔴"}.get(task.priority, "•")
+                file.write(f"{i}. {priority_symbol} {task.title}\n")
+            file.write("\n")
+            
+            #Skrive fullførte oppgaver
+            file.write("COMPLETED TASKS:\n")
+            file.write("-" * 20 + "\n")
+            for i, task in enumerate(completed_tasks, 1):
+                file.write(f"{i}. 🍻 {task.title}\n")
+            file.write("\n")
+            
+            #Statistikk
+            total_tasks = len(tasks)
+            completed_count = len(completed_tasks)
+            if total_tasks > 0: # Unngå deling på null
+                completion_rate = (completed_count / total_tasks) * 100
+                file.write(f"STATISTICS: {completed_count}/{total_tasks} completed ({completion_rate:.1f}%)\n")
+        
+        return True, f"Oppgaver eksportert til {filename}!"
+    
+    except Exception as e:
+        return False, f"Feil ved eksportering av oppgaver: {str(e)}"

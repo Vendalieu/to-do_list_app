@@ -1,0 +1,15 @@
+=== TASK LIST EXPORT ===
+Export date: 27-11-2025 21:03:47
+====================
+
+ACTIVE TASKS:
+--------------------
+1. 🟢 Popyt
+2. 🔴 Podrochyt
+3. 🟡 Pokushat
+
+COMPLETED TASKS:
+--------------------
+1. 🍻 Poigrat
+
+STATISTICS: 1/4 completed (25.0%)

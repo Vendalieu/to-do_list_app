@@ -1,7 +1,7 @@
 import tkinter
 from tkinter import messagebox, ttk # Importerer alle nødvendige biblioteker
 from task_manager import TaskManager
-from file_handler import load_tasks_from_file, save_tasks_to_file
+from file_handler import load_tasks_from_file, save_tasks_to_file, export_to_txt
 
 class TodoApp:
     '''Hovedklassen for To-Do List applikasjonen'''
@@ -76,6 +76,9 @@ class TodoApp:
         save_button = tkinter.Button(control_frame, text="Save", command=self.save_tasks) # Lager en knapp for å lagre oppgaver
         save_button.pack(side=tkinter.LEFT, padx=10)
         
+        export_button = tkinter.Button(control_frame, text="Export", command=self.export_tasks) # Lager en knapp for å eksportere oppgaver til tekstfil
+        export_button.pack(side=tkinter.LEFT, padx=10)
+        
     def add_task(self):
         '''Legger til en ny oppgave basert på brukerens inndata'''
         
@@ -93,6 +96,20 @@ class TodoApp:
             self.task_entry.delete(0, tkinter.END) # Tømmer inndatafeltet ved suksess
             self.update_task_list() # Oppdaterer oppgavelisten i GUI
             self.save_tasks(silent=True) # Automatisk lagring etter å ha lagt til en oppgave
+            messagebox.showinfo("Success", msg) # Viser suksessmelding
+        else:
+            messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
+            
+    def export_tasks(self):
+        '''Eksporterer oppgavelisten til en tekstfil'''
+        
+        if not self.task_manager.tasks:
+            messagebox.showinfo("Info", "Ingen oppgaver å eksportere.") # Viser melding hvis det ikke er noen oppgaver å eksportere
+            return
+        
+        success, msg = export_to_txt(self.task_manager.tasks) # Eksporterer oppgaver via file_handler
+        
+        if success:
             messagebox.showinfo("Success", msg) # Viser suksessmelding
         else:
             messagebox.showerror("Error", msg) # Viser feilmelding hvis noe gikk galt
