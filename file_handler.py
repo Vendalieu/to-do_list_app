@@ -95,6 +95,10 @@ def export_to_txt(tasks, filename="tasks_export.txt"):
             if total_tasks > 0: # Unngå deling på null
                 completion_rate = (completed_count / total_tasks) * 100
                 file.write(f"STATISTICS: {completed_count}/{total_tasks} completed ({completion_rate:.1f}%)\n")
+            
+            # Signature
+            file.write("_" * 20 + "\n")
+            file.write("Exported by To-Do List App - the best app ever\n")
         
         return True, f"Oppgaver eksportert til {filename}!"
     
